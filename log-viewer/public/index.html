@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Speedtest Results</title>
+</head>
+<body>
+<div>
+  <canvas id="chart"></canvas>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>  <script>
+    const labels = [
+      '2022-08-29 08:00:00',
+      '2022-08-29 08:30:00',
+      '2022-08-29 09:00:00',
+      '2022-08-29 09:30:00',
+    ];
+
+    const data = {
+      labels: labels,
+      datasets: [
+        {
+          label: 'download',
+          backgroundColor: 'rgb(255, 99, 132)',
+          borderColor: 'rgb(255, 99, 132)',
+          data: [
+            {
+              x: "2022-08-29 08:00:15",
+              y: 40.88,
+            },
+            {
+              x: "2022-08-29 08:30:10",
+              y: 59.67,
+            },
+            {
+              x: "2022-08-29 08:40:10",
+              y: 62.67,
+            },
+            {
+              x: "2022-08-29 08:50:10",
+              y: 88.67,
+            },
+            {
+              x: "2022-08-29 09:00:20",
+              y: 120.11,
+            },
+            {
+              x: "2022-08-29 09:30:10",
+              y: 180.89,
+            },
+          ]
+        },
+        {
+          label: 'upload',
+          backgroundColor: 'rgb(99, 255, 132)',
+          borderColor: 'rgb(99, 255, 132)',
+          data: [
+            {
+              x: "2022-08-29 08:00:15",
+              y: 109.20
+            },
+            {
+              x: "2022-08-29 08:30:10",
+              y: 110.30
+            },
+            {
+              x: "2022-08-29 09:00:20",
+              y: 203
+            },
+            {
+              x: "2022-08-29 09:30:10",
+              y: 175.82
+            },
+          ]
+        },
+        {
+          label: 'ping',
+          backgroundColor: 'rgb(99, 132, 255)',
+          borderColor: 'rgb(99, 132, 255)',
+          data: [
+            {
+              x: "2022-08-29 08:00:15",
+              y: 13,
+            },
+            {
+              x: "2022-08-29 08:30:10",
+              y: 17,
+            },
+            {
+              x: "2022-08-29 09:00:20",
+              y: 11,
+            },
+            {
+              x: "2022-08-29 09:30:10",
+              y: 9,
+            },
+          ]
+        },
+      ]
+    };
+
+    const config = {
+      type: 'line',
+      data: data,
+      options: {
+        scales: {
+          x: {
+            type: 'time',
+            time: {
+              unit: 'hour',
+            },
+          },
+        },
+      },
+    };
+
+    const myChart = new Chart(
+      document.getElementById('chart'),
+      config
+    );
+  </script>
+</body>
+</html>

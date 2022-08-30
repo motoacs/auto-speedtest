@@ -4,7 +4,7 @@
   "description": "An automated speedtest.net client for windows OS",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start-speedtest-client": "cd speedtest-client && node speedtest-client.mjs"
   },
   "repository": {
     "type": "git",
@@ -26,6 +26,26 @@
     "eslint-plugin-react-hooks": "^4.3.0"
   },
   "dependencies": {
+    "cron": "^2.1.0",
     "express": "^4.18.1"
+  },
+  "parserOptions": {
+    "ecmaVersion": 2022
+  },
+  "eslintConfig": {
+    "extends": [
+      "airbnb"
+    ],
+    "env": {
+      "es2022": true,
+      "node": true
+    },
+    "rules": {
+      "linebreak-style": [
+        "error",
+        "windows"
+      ],
+      "no-console": "off"
+    }
   }
 }
