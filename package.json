@@ -4,7 +4,7 @@
   "description": "An automated speedtest.net client for windows OS",
   "main": "index.js",
   "scripts": {
-    "start-speedtest-client": "cd speedtest-client && node speedtest-client.mjs"
+    "start-speedtest-client": "node ./speedtest-client/speedtest-client.mjs"
   },
   "repository": {
     "type": "git",

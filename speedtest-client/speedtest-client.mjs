@@ -11,6 +11,8 @@ import { fileURLToPath } from 'url';
 // classes
 // -----------------
 import Logger from './classes/logger.mjs';
+import ResultSaver from './classes/result-saver.mjs';
+import Utils from './classes/utils.mjs';
 
 // -----------------
 // variables
@@ -22,6 +24,8 @@ const confJsonPath = './conf.json';
 let conf;
 // logger instance
 let logger;
+// result-saver instance
+let resultSaver;
 // speedtest running flag
 let running = false;
 
@@ -31,7 +35,7 @@ let running = false;
 async function init() {
   console.log('init');
   // load config
-  conf = await Logger.readJSON(path.join(__dirname, confJsonPath));
+  conf = await Utils.readJSON(path.join(__dirname, confJsonPath));
   if (conf == null) {
     console.error('init: load conf.json error');
     return;
@@ -40,12 +44,12 @@ async function init() {
   logger = new Logger(conf, __dirname);
   new CronJob('* * * * *', () => logger.save(), null, true);
 
-  // runSpeedtest();
+  resultSaver = new ResultSaver(conf, __dirname, logger);
 
   conf.cron.forEach((cronTime) => {
     try {
       const job = new CronJob(cronTime, runSpeedtest, null, true);
-      logger.log('init: cronJob started:', cronTime, 'next:', job.nextDate().toString());
+      logger.log(`init: cronJob started: ${cronTime}  next: ${job.nextDate().toString()}`);
     }
     catch (e) {
       logger.error(e);
@@ -58,7 +62,7 @@ async function runSpeedtest() {
   running = true;
   logger.log('runSpeedtest: start');
 
-  exec(`${__dirname}/bin/speedtest.exe -u Mbps -s ${conf.testServerId} -f json`, (error, stdout, stderr) => {
+  exec(`${__dirname}/bin/speedtest.exe -s ${conf.testServerId} -f json`, (error, stdout, stderr) => {
     if (error != null) {
       console.error(error);
       running = false;
@@ -67,8 +71,8 @@ async function runSpeedtest() {
       try {
         logger.log('runSpeedtest: done');
         const ret = JSON.parse(stdout);
-        logger.log(`runSpeedtest: result: [ping] ${Math.round(ret.ping.latency)}ms  [download] ${ret.download.bandwidth}Mbps  [upload] ${ret.upload.bandwidth}Mbps`);
-        logger.appendResult(ret);
+        logger.log(`runSpeedtest: result: [ping] ${Math.round(ret.ping.latency)}ms  [download] ${(ret.download.bandwidth * 8 / 1e6).toFixed(2)}Mbps  [upload] ${(ret.upload.bandwidth * 8 / 1e6).toFixed(2)}Mbps`);
+        resultSaver.append(ret);
       }
       catch (e) {
         logger.error(e);
@@ -77,11 +81,5 @@ async function runSpeedtest() {
     }
   });
 }
-
-
-// -----------------
-// utility functions
-// -----------------
-
 
 init();
