@@ -20,10 +20,10 @@ export default class ResultSaver {
     ].join('-'); // YYYY-MM-DD
     const filePath = path.join(this.logDir, `${filename}.json`);
 
-    const json = await Utils.readJSON(filePath);
+    let json = await Utils.readJSON(filePath);
     if (json === null) {
       this.error('Logger: appendResult: readJSON error');
-      return;
+      json = [];
     }
     json.push({
       t: data.timestamp,

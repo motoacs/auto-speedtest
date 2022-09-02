@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from 'fs/promises';
 
 export default class Utils {
   static async readJSON(path) {
@@ -9,7 +9,7 @@ export default class Utils {
       return json;
     } catch (e) {
       console.error(e);
-      return [];
+      return null;
     }
   }
 
