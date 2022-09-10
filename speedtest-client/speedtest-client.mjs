@@ -46,6 +46,10 @@ async function init() {
 
   resultSaver = new ResultSaver(conf, __dirname, logger);
 
+  // テスト
+  // runSpeedtest();
+  // return;
+
   conf.cron.forEach((cronTime) => {
     try {
       const job = new CronJob(cronTime, runSpeedtest, null, true);
