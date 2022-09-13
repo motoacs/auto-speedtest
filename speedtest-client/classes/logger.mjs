@@ -47,10 +47,11 @@ export default class Logger {
     ].join('-'); // YYYY-MM-DD
 
     const copy = this.logBuffer.slice(0);
+    this.logBuffer = [];
 
     await fs
       .writeFile(
-        `${this.logDir}debug/${filename}.log`,
+        `${this.logDir}${filename}.log`,
         `${copy.join('\r\n')}\r\n`, {
           flag: 'a'
         } // append
@@ -59,6 +60,5 @@ export default class Logger {
         this.logBuffer.push(`Logger: save: ERROR: ${JSON.stringify(e)}`);
       });
 
-    this.logBuffer = [];
   }
 }
