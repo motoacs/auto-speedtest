@@ -1,5 +1,5 @@
 {
-  "testServerId": 48463,
+  "testServerId": [48463, 14623, 21569, 24333],
   "logDir": "../logs/",
   "resultDir": "../results/",
   "cron": [

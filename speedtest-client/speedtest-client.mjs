@@ -45,7 +45,7 @@ async function init() {
   new CronJob('* * * * *', () => logger.save(), null, true);
 
   resultSaver = new ResultSaver(conf, __dirname, logger);
-
+runSpeedtest();
   conf.cron.forEach((cronTime) => {
     try {
       const job = new CronJob(cronTime, runSpeedtest, null, true);
@@ -58,28 +58,39 @@ async function init() {
 }
 
 async function runSpeedtest() {
+  let i = 0;
+  let success = false;
   if (running) return;
   running = true;
   logger.log('runSpeedtest: start');
 
-  exec(`${__dirname}/bin/speedtest.exe -s ${conf.testServerId} -f json`, (error, stdout, stderr) => {
-    if (error != null) {
-      console.error(error);
-      running = false;
-    }
-    else {
-      try {
-        logger.log('runSpeedtest: done');
-        const ret = JSON.parse(stdout);
-        logger.log(`runSpeedtest: result: [ping] ${Math.round(ret.ping.latency)}ms  [download] ${(ret.download.bandwidth * 8 / 1e6).toFixed(2)}Mbps  [upload] ${(ret.upload.bandwidth * 8 / 1e6).toFixed(2)}Mbps`);
-        resultSaver.append(ret);
-      }
-      catch (e) {
-        logger.error(e);
-      }
-      running = false;
-    }
-  });
+  while (!success && i <= conf.testServerId.length) {
+    const cmd = `${__dirname}/bin/speedtest.exe${(typeof conf.testServerId[i] === 'number') ? ` -s ${conf.testServerId[i]}` : ''} -f json`
+    logger.log(`runSpeedtest: cmd = ${cmd}`);
+    success = await test(cmd);
+    i += 1;
+  }
+
+  running = false;
+
+
+  function test(cmd) {
+    return new Promise((resolve) => {
+      exec(cmd, (error, stdout, stderr) => {
+        if (error != null) {
+          logger.error(`runSpeedtest: error: ${error}`);
+          resolve(false);
+        }
+        else {
+          logger.log('runSpeedtest: done');
+          const ret = JSON.parse(stdout);
+          logger.log(`runSpeedtest: result: [ping] ${Math.round(ret.ping.latency)}ms  [download] ${(ret.download.bandwidth * 8 / 1e6).toFixed(2)}Mbps  [upload] ${(ret.upload.bandwidth * 8 / 1e6).toFixed(2)}Mbps`);
+          resultSaver.append(ret);
+          resolve(true);
+        }
+      });
+    });
+  }
 }
 
 init();
