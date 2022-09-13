@@ -1,6 +1,21 @@
 import fs from 'fs/promises';
 
 export default class Utils {
+  static async readFile(path) {
+
+  }
+
+  static async writeFile(path, data) {
+    await fs.writeFile(
+      path,
+      data,
+      {
+        encoding: 'utf8',
+        flag: 'a',
+      },
+    );
+  }
+
   static async readJSON(path) {
     let json;
     try {
