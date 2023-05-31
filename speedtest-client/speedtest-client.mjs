@@ -4,14 +4,15 @@
 import { exec } from 'child_process';
 import fs from 'fs/promises';
 import { CronJob } from 'cron';
+import * as winston from 'winston';
+import 'winston-daily-rotate-file';
+import moment from 'moment-timezone';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 // -----------------
 // classes
 // -----------------
-import Logger from './classes/logger.mjs';
-import ResultSaver from './classes/result-saver.mjs';
 import Utils from './classes/utils.mjs';
 
 // -----------------
@@ -41,19 +42,52 @@ async function init() {
     return;
   }
 
-  logger = new Logger(conf, __dirname);
-  new CronJob('* * * * *', () => logger.save(), null, true);
+  logger = winston.createLogger({
+    format: winston.format.combine(
+      winston.format.timestamp({ format: () => moment().tz('Asia/Tokyo').format('YYYY-MM-DD HH:mm:ss') }),
+      winston.format.printf(({ level, message, timestamp }) => {
+        return `${timestamp} ${level.toUpperCase()}: ${message}`
+      }),
+    ),
+    transports: [
+      new winston.transports.DailyRotateFile({
+        filename: '%DATE%.log',
+        dirname: path.join(__dirname, conf.logDir),
+        datePattern: 'YYYY-MM',
+        zippedArchive: true,
+        maxSize: '20m',
+        maxFiles: '180d'
+      }),
+      new winston.transports.Console(),
+    ],
+  });
 
-  resultSaver = new ResultSaver(conf, __dirname, logger);
+  resultSaver = winston.createLogger({
+    format: winston.format.combine(
+        winston.format.timestamp({ format: () => moment().tz('Asia/Tokyo').format('YYYY/MM/DD HH:mm:ss') }),
+        winston.format.printf(({ message, timestamp }) => {
+            return `${timestamp},${message}`
+        }),
+    ),
+    transports: [
+        new winston.transports.DailyRotateFile({
+            filename: '%DATE%.csv',
+            dirname: path.join(__dirname, conf.resultDir),
+            datePattern: 'YYYY-MM',
+            zippedArchive: true,
+            maxSize: '20m',
+        }),
+    ],
+  });
 
-  // テスト
+  // test
   // runSpeedtest();
   // return;
 
   conf.cron.forEach((cronTime) => {
     try {
       const job = new CronJob(cronTime, runSpeedtest, null, true);
-      logger.log(`init: cronJob started: ${cronTime}  next: ${job.nextDate().toString()}`);
+      logger.info(`init: cronJob started: ${cronTime}  next: ${job.nextDate().toString()}`);
     }
     catch (e) {
       logger.error(e);
@@ -66,11 +100,11 @@ async function runSpeedtest() {
   let success = false;
   if (running) return;
   running = true;
-  logger.log('runSpeedtest: start');
+  logger.info('runSpeedtest: start test');
 
   while (!success && i <= conf.testServerId.length) {
     const cmd = `${__dirname}/bin/speedtest.exe${(typeof conf.testServerId[i] === 'number') ? ` -s ${conf.testServerId[i]}` : ''} -f json`
-    logger.log(`runSpeedtest: cmd = ${cmd}`);
+    logger.info(`runSpeedtest: cmd = ${cmd}`);
     success = await test(cmd);
     i += 1;
   }
@@ -86,10 +120,10 @@ async function runSpeedtest() {
           resolve(false);
         }
         else {
-          logger.log('runSpeedtest: done');
+          logger.info('runSpeedtest: done');
           const ret = JSON.parse(stdout);
-          logger.log(`runSpeedtest: result: [ping] ${Math.round(ret.ping.latency)}ms  [download] ${(ret.download.bandwidth * 8 / 1e6).toFixed(2)}Mbps  [upload] ${(ret.upload.bandwidth * 8 / 1e6).toFixed(2)}Mbps`);
-          resultSaver.append(ret);
+          logger.info(`runSpeedtest: result: [ping] ${Math.round(ret.ping.latency)}ms  [download] ${(ret.download.bandwidth * 8 / 1e6).toFixed(2)}Mbps  [upload] ${(ret.upload.bandwidth * 8 / 1e6).toFixed(2)}Mbps  [result] ${ret.result.url}`);
+          resultSaver.info(`${Math.round(ret.ping.latency)},${(ret.download.bandwidth * 8 / 1e6).toFixed(2)},${(ret.upload.bandwidth * 8 / 1e6).toFixed(2)},${ret.result.id}`);
           resolve(true);
         }
       });
