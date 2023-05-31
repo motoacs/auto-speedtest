@@ -52,7 +52,7 @@ async function init() {
     transports: [
       new winston.transports.DailyRotateFile({
         filename: '%DATE%.log',
-        dirname: path.join(__dirname, conf.logDir),
+        dirname: path.isAbsolute(conf.logDir) ? conf.logDir : path.resolve(__dirname, conf.logDir),
         datePattern: 'YYYY-MM',
         zippedArchive: true,
         maxSize: '20m',
@@ -72,7 +72,7 @@ async function init() {
     transports: [
         new winston.transports.DailyRotateFile({
             filename: '%DATE%.csv',
-            dirname: path.join(__dirname, conf.resultDir),
+            dirname: path.isAbsolute(conf.resultDir) ? conf.resultDir : path.resolve(__dirname, conf.resultDir),
             datePattern: 'YYYY-MM',
             zippedArchive: true,
             maxSize: '20m',
